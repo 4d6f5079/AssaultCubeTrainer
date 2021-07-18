@@ -118,11 +118,11 @@ dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 
 	if (!readStatus)
 	{
-		std::cout << "[FAILED] Reading memory address " << memAddress << " failed." << std::endl;
+		std::cout << "[FAILED] Reading memory address failed." << std::endl;
 	}
 	else
 	{
-		std::cout << "[SUCCESS] Memory address " << memAddress << " dereferenced and has value: " << val << std::endl;
+		std::cout << "[SUCCESS] Reading memory address " << memAddress << " was successful." << std::endl;
 	}
 
 	return val;
@@ -140,16 +140,15 @@ dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 */
 void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress)
 {
-	const uintptr_t old_mem_addr = *memAddress;
 	const BOOL readStatus = ReadProcessMemory(hProc, (BYTE*)(*memAddress), memAddress, sizeof(*memAddress), nullptr);
 
 	if (!readStatus)
 	{
-		std::cout << "[FAILED] Reading memory address " << old_mem_addr << " failed." << std::endl;
+		std::cout << "[FAILED] Reading memory address failed." << std::endl;
 	}
 	else
 	{
-		std::cout << "[SUCCESS] Memory address " << old_mem_addr << " dereferenced and updated to new memory address " << memAddress << std::endl;
+		std::cout << "[SUCCESS] Reading memory address " << *memAddress << " was successful." << std::endl;
 	}
 }
 
@@ -197,25 +196,35 @@ uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, std::vector<uin
 }
 
 
-int main()
+void ChangeOffsetValue(const wchar_t* proc_name, std::vector<uintptr_t> offsets, uintptr_t prefferedValue)
 {
-	const wchar_t* proc_name = L"ac_client.exe";
 	DWORD Pid = AttachProcess(proc_name);
 	uintptr_t modBaseAddr = GetModuleBaseAddress(Pid, proc_name) + ENTITY_STATIC_OFFSET_ADDR;
 
+	if (Pid == 0 || modBaseAddr == 0)
+	{
+		return;
+	}
+
 	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Pid);
-	uintptr_t ptrHp = FindDynamicMemAddr(hProc, modBaseAddr, HEALTH_OFFSET);
+	uintptr_t addrContainingValue= FindDynamicMemAddr(hProc, modBaseAddr, offsets);
 
-	uintptr_t health = -1;
-	ReadProcessMemory(hProc, (BYTE*)ptrHp, &health, sizeof(ptrHp), nullptr);
-	std::cout << "PID: " << Pid <<  std::endl;
-	std::cout << "old value: " << health <<  std::endl;
+	std::cout << "Value BEFORE change: " << ReadFromProcMem<uintptr_t>(hProc, addrContainingValue) << std::endl;
+	
+	WriteToProcMem(hProc, addrContainingValue, prefferedValue);
 
-	uintptr_t health_new = 1337;
-	WriteToProcMem(hProc, ptrHp, health_new);
+	std::cout << "Value AFTER change: " << ReadFromProcMem<uintptr_t>(hProc, addrContainingValue) << std::endl;
 
-	ReadProcessMemory(hProc, (BYTE*)ptrHp, &health, sizeof(ptrHp), nullptr);
-	std::cout << "updated value: " << health << std::endl;
+	CloseHandle(hProc);
+}
 
+
+int main()
+{
+	const wchar_t* proc_name = L"ac_client.exe";
+	ChangeOffsetValue(proc_name, HEALTH_OFFSET, 10000);
+	ChangeOffsetValue(proc_name, AR_AMMO_OFFSET2, 999);
+	ChangeOffsetValue(proc_name, ARMOR_OFFSET, 99);
+	ChangeOffsetValue(proc_name, GRENADE_OFFSET, 99);
 	return 0;
 }
