@@ -22,7 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{1daf3bff-f809-44dd-8d2a-678702e67005}</ProjectGuid>
-    <RootNamespace>hackinggamestutorial</RootNamespace>
+    <RootNamespace>AssaultCubeTrainer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -139,7 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="hackinggamestutorial.cpp" />
+    <ClCompile Include="AssaultCubeTrainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssaultCubeOffsets.h" />

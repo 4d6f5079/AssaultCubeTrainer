@@ -4,7 +4,7 @@
 #include <vector>
 
 // add this base address offset to the exe base address of the game
-const uintptr_t SINGLEPLAYER_MULTIPLAYER_STATIC_OFFSET_ADDR = 0x10F4F4;
+const uintptr_t ENTITY_STATIC_OFFSET_ADDR = 0x10F4F4;
 
 // health and armor offsets
 const std::vector<uintptr_t> HEALTH_OFFSET = { 0xF8 };
