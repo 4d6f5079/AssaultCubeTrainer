@@ -1,22 +1,8 @@
-#include <iostream>
-#include <windows.h>
-#include <TlHelp32.h>
-#include <cstddef>
-#include <tchar.h>
-#include <vector>
+#include "AssaultCubeHeader.h"
 #include "AssaultCubeOffsets.h"
 
 // ATTENTION: YOU MUST RUN THIS WITH Release AND x86 
 
-// TODO: make specific header for implementaitons in this cpp file
-
-/*
-* Traverse the process list to get the handle of the given process name.
-*
-* [proc_name] => the name of the process of which the handle is required
-*
-* [RETURNS] => the handle of the given process name
-*/
 DWORD AttachProcess(const wchar_t* proc_name)
 {
 	DWORD PID = 0;
@@ -60,14 +46,7 @@ DWORD AttachProcess(const wchar_t* proc_name)
 	return PID;
 }
 
-/*
-* Traverse the module list to get the base address of the given module name.
-*
-* [hProc] => the handle of the processes of the game
-* [modName] => the module name to get the base address of
-*
-* [RETURNS] => pointer to the base address of the module
-*/
+
 uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
 {
 	uintptr_t modBaseAddr = 0;
@@ -102,14 +81,6 @@ uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
 	return modBaseAddr;
 }
 
-/*
-* Reads the value from the given process memory address.
-*
-* [hProc] => the handle of the processes of the game
-* [memAddress] => the memory address from which to read the value
-* 
-* [RETURNS] => the value that has been read
-*/
 template <typename dataType>
 dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 {
@@ -128,16 +99,7 @@ dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 	return val;
 }
 
-/*
-* (OVERLOADED METHOD)
-* Reads the value from the given process memory address. 
-* The memAddress is modified to contain the value of the memory address that has been read using access by pointer.
-* This is also called dereferencing the memory address.
-* 
-* [hProc] => the handle of the processes of the game
-* [memAddress] => the memory address from which to read the value
-* 
-*/
+
 void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress)
 {
 	const BOOL readStatus = ReadProcessMemory(hProc, (BYTE*)(*memAddress), memAddress, sizeof(*memAddress), nullptr);
@@ -152,14 +114,7 @@ void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress)
 	}
 }
 
-/*
-* Writes the given value to the given process memory address.
-*
-* [hProc] => the handle of the processes of the game
-* [memAddress] => the memory address to access the value of
-* [valToWrite] => the value to write to the given process memory address
-*
-*/
+
 void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite)
 {
 	BOOL writeStatus = WriteProcessMemory(hProc, (BYTE*)memAddress, &valToWrite, sizeof(memAddress), nullptr);
@@ -174,20 +129,11 @@ void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite)
 	}
 }
 
-/*
-* This method traverses the offsets from the (module base address + entity static address) to the dynamically 
-* allocated memory of ammo, health, armor etc... depending on the offsets.
-* 
-* [hProc] => the handle of the processes of the game
-* [modeBasePtr] => base pointer (0 offset) of the module/exe of the game
-* [offsets] => vector of offsets to traverse
-* 
-* [RETURNS] => the memory address containing the ammo, hp or armor etc... value
-*/
+
 uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, std::vector<uintptr_t> offsets)
 {
 	uintptr_t addr = modBasePtr;
-	for (uint32_t offset_idx = 0; offset_idx < offsets.size(); offset_idx++)
+	for (unsigned int offset_idx = 0; offset_idx < offsets.size(); ++offset_idx)
 	{
 		ReadFromProcMem(hProc, &addr);
 		addr += offsets[offset_idx];
@@ -222,7 +168,7 @@ void ChangeOffsetValue(const wchar_t* proc_name, std::vector<uintptr_t> offsets,
 int main()
 {
 	const wchar_t* proc_name = L"ac_client.exe";
-	ChangeOffsetValue(proc_name, HEALTH_OFFSET, 10000);
+	ChangeOffsetValue(proc_name, HEALTH_OFFSET, 999);
 	ChangeOffsetValue(proc_name, AR_AMMO_OFFSET2, 999);
 	ChangeOffsetValue(proc_name, ARMOR_OFFSET, 99);
 	ChangeOffsetValue(proc_name, GRENADE_OFFSET, 99);

@@ -23,5 +23,8 @@
     <ClInclude Include="AssaultCubeOffsets.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AssaultCubeHeader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

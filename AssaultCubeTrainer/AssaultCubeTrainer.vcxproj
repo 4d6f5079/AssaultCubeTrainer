@@ -142,6 +142,7 @@
     <ClCompile Include="AssaultCubeTrainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssaultCubeHeader.h" />
     <ClInclude Include="AssaultCubeOffsets.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
