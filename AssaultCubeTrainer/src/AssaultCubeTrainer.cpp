@@ -1,9 +1,10 @@
-#include "AssaultCubeHeader.h"
+﻿#include "AssaultCubeHeader.h"
 #include "AssaultCubeOffsets.h"
 
-// ATTENTION: YOU MUST RUN THIS WITH Release AND x86 
+// ATTENTION: you must run the code with configuration set to "Release" and
+//			  platform set to "x86" since the game is 32-bit
 
-DWORD AttachProcess(const wchar_t* proc_name)
+unsigned long AttachProcess(const wchar_t* proc_name)
 {
 	DWORD PID = 0;
 
@@ -15,7 +16,7 @@ DWORD AttachProcess(const wchar_t* proc_name)
 	if (hProcSnap != INVALID_HANDLE_VALUE)
 	{
 		// processes structure object
-		PROCESSENTRY32 procEnt;
+		PROCESSENTRY32 procEnt{};
 
 		// Set the size of the structure before using it.
 		procEnt.dwSize = sizeof(procEnt);
@@ -84,8 +85,25 @@ uintptr_t GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
 template <typename dataType>
 dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 {
-	dataType val = 0;
+	dataType val;
 	const BOOL readStatus = ReadProcessMemory(hProc, (BYTE*)memAddress, &val, sizeof(memAddress), nullptr);
+
+	if (!readStatus)
+	{
+		std::cout << "[FAILED] Reading memory address failed." << std::endl;
+	}
+	else
+	{
+		std::cout << "[SUCCESS] Reading memory address " << memAddress << " was successful. Value: " << val << std::endl;
+	}
+
+	return val;
+}
+
+
+void ReadFromProcMem(const HANDLE hProc, uintptr_t& memAddress)
+{
+	const BOOL readStatus = ReadProcessMemory(hProc, (BYTE*)memAddress, &memAddress, sizeof(memAddress), nullptr);
 
 	if (!readStatus)
 	{
@@ -95,31 +113,14 @@ dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress)
 	{
 		std::cout << "[SUCCESS] Reading memory address " << memAddress << " was successful." << std::endl;
 	}
-
-	return val;
 }
 
-
-void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress)
-{
-	const BOOL readStatus = ReadProcessMemory(hProc, (BYTE*)(*memAddress), memAddress, sizeof(*memAddress), nullptr);
-
-	if (!readStatus)
-	{
-		std::cout << "[FAILED] Reading memory address failed." << std::endl;
-	}
-	else
-	{
-		std::cout << "[SUCCESS] Reading memory address " << *memAddress << " was successful." << std::endl;
-	}
-}
-
-
-void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite)
+template <typename valueType>
+void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, valueType valToWrite)
 {
 	BOOL writeStatus = WriteProcessMemory(hProc, (BYTE*)memAddress, &valToWrite, sizeof(memAddress), nullptr);
 
-	if (writeStatus == FALSE)
+	if (!writeStatus)
 	{
 		std::cout << "Failed to write value to address: " << memAddress << std::endl;
 	}
@@ -130,19 +131,19 @@ void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite)
 }
 
 
-uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, std::vector<uintptr_t> offsets)
+uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, const std::vector<uintptr_t>& offsets)
 {
 	uintptr_t addr = modBasePtr;
 	for (unsigned int offset_idx = 0; offset_idx < offsets.size(); ++offset_idx)
 	{
-		ReadFromProcMem(hProc, &addr);
+		ReadFromProcMem(hProc, addr);
 		addr += offsets[offset_idx];
 	}
 	return addr;
 }
 
 
-void ChangeOffsetValue(const wchar_t* proc_name, std::vector<uintptr_t> offsets, uintptr_t prefferedValue)
+void ChangeOffsetValue(const wchar_t* proc_name, const std::vector<uintptr_t>& offsets, int desiredValue)
 {
 	DWORD Pid = AttachProcess(proc_name);
 	uintptr_t modBaseAddr = GetModuleBaseAddress(Pid, proc_name) + ENTITY_STATIC_OFFSET_ADDR;
@@ -155,22 +156,20 @@ void ChangeOffsetValue(const wchar_t* proc_name, std::vector<uintptr_t> offsets,
 	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Pid);
 	uintptr_t addrContainingValue= FindDynamicMemAddr(hProc, modBaseAddr, offsets);
 
-	std::cout << "Value BEFORE change: " << ReadFromProcMem<uintptr_t>(hProc, addrContainingValue) << std::endl;
+	std::cout << "Value BEFORE change: " << ReadFromProcMem<int>(hProc, addrContainingValue) << std::endl;
 	
-	WriteToProcMem(hProc, addrContainingValue, prefferedValue);
+	WriteToProcMem<decltype(desiredValue)>(hProc, addrContainingValue, desiredValue);
 
-	std::cout << "Value AFTER change: " << ReadFromProcMem<uintptr_t>(hProc, addrContainingValue) << std::endl;
+	std::cout << "Value AFTER change: " << ReadFromProcMem<int>(hProc, addrContainingValue) << std::endl;
 
 	CloseHandle(hProc);
 }
 
-
 int main()
 {
-	const wchar_t* proc_name = L"ac_client.exe";
-	ChangeOffsetValue(proc_name, HEALTH_OFFSET, 999);
-	ChangeOffsetValue(proc_name, AR_AMMO_OFFSET2, 999);
-	ChangeOffsetValue(proc_name, ARMOR_OFFSET, 99);
-	ChangeOffsetValue(proc_name, GRENADE_OFFSET, 99);
-	return 0;
+	//const wchar_t* proc_name = L"ac_clientя.exe";
+	//ChangeOffsetValue(proc_name, HEALTH_OFFSET, 99999999);
+	//ChangeOffsetValue(proc_name, AR_AMMO_OFFSET2, 9999);
+	//ChangeOffsetValue(proc_name, ARMOR_OFFSET, 9999);
+	//ChangeOffsetValue(proc_name, GRENADE_OFFSET, 9999);
 }

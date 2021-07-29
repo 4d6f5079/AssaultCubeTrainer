@@ -1,10 +1,11 @@
 #pragma once
 #include <iostream>
+#include <cstddef>
+#include <typeinfo>
+#include <vector>
 #include <windows.h>
 #include <TlHelp32.h>
-#include <cstddef>
 #include <tchar.h>
-#include <vector>
 
 /*
 * Traverse the process list to get the handle of the given process name.
@@ -46,7 +47,7 @@ dataType ReadFromProcMem(HANDLE hProc, uintptr_t memAddress);
 * [memAddress] => the memory address from which to read the value
 *
 */
-void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress);
+void ReadFromProcMem(HANDLE hProc, uintptr_t& memAddress);
 
 /*
 * Writes the given value to the given process memory address.
@@ -56,7 +57,8 @@ void ReadFromProcMem(HANDLE hProc, uintptr_t* memAddress);
 * [valToWrite] => the value to write to the given process memory address
 *
 */
-void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite);
+template <typename valueType>
+void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, valueType valToWrite);
 
 /*
 * This method traverses the offsets from the (module base address + entity static address) to the dynamically
@@ -68,7 +70,14 @@ void WriteToProcMem(HANDLE hProc, uintptr_t memAddress, uintptr_t valToWrite);
 *
 * [RETURNS] => the memory address containing the ammo, hp or armor etc... value
 */
-uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, std::vector<uintptr_t> offsets);
+uintptr_t FindDynamicMemAddr(HANDLE hProc, uintptr_t modBasePtr, const std::vector<uintptr_t>& offsets);
 
-
-void ChangeOffsetValue(const wchar_t* proc_name, std::vector<uintptr_t> offsets, uintptr_t prefferedValue);
+/*
+* Changes the value at the offsets in memory of the game to the desired value.
+*
+* [proc_name] => process name of the game
+* [offsets] => list of offsets to traverse to get to the correct memory address to change
+* [desiredValue] => the value to change to at the memory address after traversing the offsets
+*
+*/
+void ChangeOffsetValue(const wchar_t* proc_name, const std::vector<uintptr_t>& offsets, int desiredValue);

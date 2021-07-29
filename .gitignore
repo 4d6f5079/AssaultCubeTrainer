@@ -2,12 +2,7 @@
 *.d
 *.tlog
 .vs/*
-Release/
-x64/
-x86/
-AssaultCubeTrainer/Release/
-AssaultCubeTrainer/x64/
-AssaultCubeTrainer/x86/
+bin/
 
 # Compiled Object files
 *.slo

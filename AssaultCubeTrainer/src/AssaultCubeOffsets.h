@@ -12,7 +12,7 @@ const std::vector<uintptr_t> ARMOR_OFFSET = { 0xFC };
 
 // weapons and grenades offsets
 // example finding ammo address: base (static) addr -> offset 1 -> offset 2 -> ... -> ammo address -> value
-const std::vector<uintptr_t> AR_AMMO_OFFSET = { 0x374, 0x14, 0x0 };
+//const std::vector<uintptr_t> AR_AMMO_OFFSET = { 0x374, 0x14, 0x0 }; -> only works for 32-bit 
 const std::vector<uintptr_t> AR_AMMO_OFFSET2 = { 0x148 };
 const std::vector<uintptr_t> PISTOL_AMMO_OFFSET = { 0x13C };
 const std::vector<uintptr_t> GRENADE_OFFSET = { 0x158 };
